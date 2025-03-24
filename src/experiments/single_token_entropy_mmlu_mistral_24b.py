@@ -1,4 +1,5 @@
 import ast
+from pathlib import Path
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TorchAoConfig
@@ -30,8 +31,8 @@ def verify_model_answer(row, model_answer):
 
 
 estimate_dataset(
-    in_filename="../../data/source/mmlu_pro_stem.tsv",
-    out_filename="../../data/out/mmlu_mistral_24b_single_token.tsv",
+    in_filename=Path(__file__).joinpath("../../../data/source/mmlu_pro_stem.tsv").resolve(),
+    out_filename=Path(__file__).joinpath("../../../data/out/mmlu_mistral_24b_single_token.tsv").resolve(),
     model=model,
     tokenizer=tokenizer,
     get_subject_from_row=lambda row: row["base_cluster"],
