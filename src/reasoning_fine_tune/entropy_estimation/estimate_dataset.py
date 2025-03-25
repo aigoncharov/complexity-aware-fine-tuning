@@ -40,7 +40,7 @@ def estimate_dataset(
     if field_entropy_value not in df.columns:
         df[field_entropy_value] = 0.0
     if field_ans not in df.columns:
-        df[field_entropy_value] = ""
+        df[field_ans] = ""
 
     entropy_estimator = TokenwiseEntropy(llm_model=model)
 
