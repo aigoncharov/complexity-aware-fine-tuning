@@ -1,4 +1,3 @@
-import csv
 import gc
 
 import pandas as pd
@@ -32,6 +31,7 @@ def estimate_dataset(
     model_name = model.config_class().model_type
     print(model_name)
 
+    field_ans = f"entropy_ans_{model_name}"
     field_ans_correct = f"entropy_ans_correct_{model_name}"
     field_entropy_value = f"entropy_value_{model_name}"
 
@@ -39,6 +39,8 @@ def estimate_dataset(
         df[field_ans_correct] = False
     if field_entropy_value not in df.columns:
         df[field_entropy_value] = 0.0
+    if field_ans not in df.columns:
+        df[field_entropy_value] = ""
 
     entropy_estimator = TokenwiseEntropy(llm_model=model)
 
@@ -68,6 +70,7 @@ def estimate_dataset(
             entropy = entropy_estimator.calculate(outputs)
             # print(f"loop {index} -> after entropy: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
             df.at[index, field_entropy_value] = entropy
+            df.at[index, field_ans] = answer
             df.at[index, field_ans_correct] = verify_answer(row, answer)
         else:
             invalid_answers += 1
@@ -81,6 +84,6 @@ def estimate_dataset(
         if DEVICE == torch.device("cuda"):
             torch.cuda.empty_cache()
 
-    df.to_csv(out_filename, sep="\t", quoting=csv.QUOTE_NONE, quotechar="", escapechar="\\", index=False)
+    df.to_csv(out_filename, sep="\t", index=False)
     print(f"Processed dataset {out_filename}. Total entries: {df.shape[0]}. Invalid answers: {invalid_answers}")
     return df
