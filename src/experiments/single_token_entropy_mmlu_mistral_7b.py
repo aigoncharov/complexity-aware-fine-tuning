@@ -20,7 +20,7 @@ model = AutoModelForCausalLM.from_pretrained(
 
 def verify_model_answer(row, model_answer):
     try:
-        return int(row["answer_index"]) + 1 == int(model_answer)
+        return int(row["answer_index"]) + 1 == int(model_answer.strip())
     except:
         return False
 
@@ -34,4 +34,6 @@ estimate_dataset(
     get_question_from_row=lambda row: row["question"],
     get_options_from_row=lambda row: ast.literal_eval(row["options"]),
     verify_answer=verify_model_answer,
+    # Model generates white space
+    max_new_tokens=2,
 )

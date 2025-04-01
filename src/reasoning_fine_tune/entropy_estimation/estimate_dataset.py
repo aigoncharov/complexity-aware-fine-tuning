@@ -19,6 +19,7 @@ def estimate_dataset(
     get_options_from_row,
     verify_answer,
     dump_every=100,
+    max_new_tokens=1,
 ):
     invalid_answers = 0
 
@@ -60,7 +61,7 @@ def estimate_dataset(
 
         inputs = tokenizer(formatted_prompt, return_tensors="pt").to(DEVICE)
 
-        outputs = model.generate(**inputs, max_new_tokens=1, pad_token_id=tokenizer.eos_token_id)
+        outputs = model.generate(**inputs, max_new_tokens=max_new_tokens, pad_token_id=tokenizer.eos_token_id)
         # print(f"loop {index} -> after generate: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
 
         input_length = inputs.input_ids.shape[1]
@@ -75,7 +76,9 @@ def estimate_dataset(
         else:
             invalid_answers += 1
 
-        # print(f"Answer: {answer}\nEntropy: {entropy}\nis_correct: {df.at[index, field_ans_correct]}\n\n")
+        # print(
+        #     f"Answer: {answer}\nEntropy: {df.at[index, field_entropy_value]}\nis_correct: {df.at[index, field_ans_correct]}\n\n"
+        # )
 
         if index % dump_every == 0:
             df.to_csv(out_filename, sep="\t", index=False)
