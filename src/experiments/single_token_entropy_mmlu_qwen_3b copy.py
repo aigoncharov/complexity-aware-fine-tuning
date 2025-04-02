@@ -20,7 +20,7 @@ model = AutoModelForCausalLM.from_pretrained(
 
 def verify_model_answer(row, model_answer):
     try:
-        return int(row["answer_index"]) + 1 == int(model_answer.strip())
+        return int(row["answer_index"]) + 1 == int(model_answer)
     except:
         return False
 
