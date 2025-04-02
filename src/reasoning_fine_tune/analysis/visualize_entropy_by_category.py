@@ -1,0 +1,19 @@
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+def visualize_entropy_by_category(df, category, x, hue):
+    for cat in df[category].unique():
+        plt.figure(figsize=(14, 6))
+        ax = sns.histplot(
+            df.loc[df[category].isin([cat]), :],
+            x=x,
+            bins=[x * 0.1 for x in range(0, 10)],
+            hue=hue,
+            hue_order=[False, True],
+            multiple="dodge",
+        )
+        ax.set_xlabel("Entropy")
+        ax.set_ylabel("Count")
+        ax.set_title(cat)
+        plt.legend(handles=ax.get_legend().legend_handles, labels=["Incorrect", "Correct"], title="Answer")
