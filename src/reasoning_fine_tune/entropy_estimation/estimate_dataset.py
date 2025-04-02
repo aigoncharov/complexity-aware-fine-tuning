@@ -1,4 +1,5 @@
 import gc
+import os
 
 import pandas as pd
 import torch
@@ -22,6 +23,9 @@ def estimate_dataset(
     max_new_tokens=1,
 ):
     invalid_answers = 0
+
+    if os.path.exists(out_filename):
+        in_filename = out_filename
 
     df = pd.read_csv(
         in_filename,
