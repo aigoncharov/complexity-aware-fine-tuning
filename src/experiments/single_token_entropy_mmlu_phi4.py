@@ -1,6 +1,7 @@
 import ast
 from pathlib import Path
 
+import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TorchAoConfig
 
 from reasoning_fine_tune.entropy_estimation.estimate_dataset import estimate_dataset
