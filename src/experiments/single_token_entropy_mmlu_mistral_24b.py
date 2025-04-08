@@ -1,7 +1,8 @@
 import ast
 from pathlib import Path
 
-from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer, TorchAoConfig
 
 from reasoning_fine_tune.entropy_estimation.estimate_dataset import estimate_dataset
 from reasoning_fine_tune.utils.device import DEVICE_MAP
@@ -12,8 +13,10 @@ MODEL_NAME = "mistralai/Mistral-Small-24B-Instruct-2501"
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
+quantization_config = TorchAoConfig("int8_dynamic_activation_int8_weight")
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
+    torch_dtype=torch.bfloat16,
     device_map=DEVICE_MAP,
 )
 
