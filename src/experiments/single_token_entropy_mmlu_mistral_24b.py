@@ -13,11 +13,12 @@ MODEL_NAME = "mistralai/Mistral-Small-24B-Instruct-2501"
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
-quantization_config = TorchAoConfig("int8_dynamic_activation_int8_weight")
+# quantization_config = TorchAoConfig("int8_dynamic_activation_int8_weight")
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
-    torch_dtype=torch.bfloat16,
+    #quantization_config=quantization_config,
     device_map=DEVICE_MAP,
+    torch_dtype=torch.bfloat16
 )
 
 inferred_device_map = model.hf_device_map
