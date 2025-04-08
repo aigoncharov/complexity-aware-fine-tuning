@@ -1,6 +1,7 @@
 import ast
 from pathlib import Path
 
+import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from reasoning_fine_tune.entropy_estimation.estimate_dataset import estimate_dataset
@@ -12,10 +13,7 @@ MODEL_NAME = "microsoft/phi-4"
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL_NAME,
-    device_map=DEVICE_MAP,
-)
+model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, device_map=DEVICE_MAP, torch_dtype=torch.bfloat16)
 
 inferred_device_map = model.hf_device_map
 print("\nInferred Device Map:", inferred_device_map)
