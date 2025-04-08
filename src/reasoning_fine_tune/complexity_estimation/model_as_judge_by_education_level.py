@@ -39,13 +39,13 @@ def estimate_rating(api_client: MistralAPIClient, df, index, question, answer):
                 {answer}
                 [The End of Assistant’s Answer]
 
-                You must rate the assistant's response on a scale of 1 to 10 by strictly following this format: "[[rating]]", for example:"Rating: [[6]]"
+                You must rate the assistant's response on a scale of 1 to 10 (where 10 is the best and 1 is the worst) by strictly following this format: "[[rating]]", for example:"Rating: [[6]]"
                 """,
             },
         ]
     )
     response = chat_response.choices[0].message.content
-    # print(response)
+    print(response)
 
     rating = re.search("\\[\\[(\\d+?)\\]\\]", response).group(1)
     # print(rating)
@@ -76,6 +76,8 @@ def estimate_education_level_with_model(api_client: MistralAPIClient, df, index,
     complexity_str = re.search("\\[\\[(.+?)\\]\\]", response).group(1)
     assert complexity_str in valid_education_levels
     df.at[index, FIELD_COMPLEXITY] = complexity_str
+
+    return response
 
 
 def estimate_dataset(
@@ -113,25 +115,26 @@ def estimate_dataset(
         question = get_user_prompt(get_question_from_row(row), get_options_from_row(row))
         # print(complexity_user_prompt)
 
-        response_complexity = None
         try:
             response_complexity = estimate_education_level_with_model(mistral_api_client, df, index, question)
         except:
+            response_complexity = None
             invalid_entries += 1
 
         mistral_api_client.wait()
 
-        try:
-            estimate_rating(
-                mistral_api_client,
-                df,
-                index,
-                question,
-                response_complexity,
-            )
-            mistral_api_client.wait()
-        except:
-            invalid_entries += 1
+        if response_complexity is not None:
+            try:
+                estimate_rating(
+                    mistral_api_client,
+                    df,
+                    index,
+                    question,
+                    response_complexity,
+                )
+                mistral_api_client.wait()
+            except:
+                invalid_entries += 1
 
         if index % dump_every == 0:
             df.to_csv(out_filename, sep="\t", index=False)
