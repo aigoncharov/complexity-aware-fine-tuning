@@ -91,9 +91,9 @@ def estimate_dataset(
         else:
             invalid_answers += 1
 
-        print(
-            f"Answer: {answer}\nEntropy: {df.at[index, field_entropy_value]}\nis_correct: {df.at[index, field_ans_correct]}\ndims:{input_length}, {outputs.sequences.shape}\n\n"
-        )
+        # print(
+        #     f"Answer: {answer}\nEntropy: {df.at[index, field_entropy_value]}\nis_correct: {df.at[index, field_ans_correct]}\ndims:{input_length}, {outputs.sequences.shape}\n\n"
+        # )
 
         if index % dump_every == 0:
             df.to_csv(out_filename, sep="\t", index=False)
