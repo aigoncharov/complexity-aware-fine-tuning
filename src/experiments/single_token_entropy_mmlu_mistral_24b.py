@@ -4,9 +4,9 @@ from pathlib import Path
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from reasoning_fine_tune.entropy_estimation.estimate_dataset import estimate_dataset
-from reasoning_fine_tune.utils.device import DEVICE
+from reasoning_fine_tune.utils.device import DEVICE_MAP
 
-print(f"Using device: {DEVICE}")
+print(f"Using device: {DEVICE_MAP}")
 
 MODEL_NAME = "mistralai/Mistral-Small-24B-Instruct-2501"
 
@@ -14,7 +14,7 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_NAME,
-    device_map=DEVICE,
+    device_map=DEVICE_MAP,
 )
 
 
