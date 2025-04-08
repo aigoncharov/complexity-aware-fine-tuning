@@ -6,7 +6,7 @@ import torch
 from tqdm import tqdm
 
 import reasoning_fine_tune.prompts.mmlu as mmlu_prompts
-from reasoning_fine_tune.entropy_estimation.logit_entropy import TokenwiseEntropy
+from reasoning_fine_tune.entropy_estimation.logit_entropy import compute_entropy_from_logits
 from reasoning_fine_tune.utils.device import DEVICE
 
 
@@ -47,8 +47,6 @@ def estimate_dataset(
     if field_ans not in df.columns:
         df[field_ans] = ""
 
-    entropy_estimator = TokenwiseEntropy(llm_model=model)
-
     for index, row in tqdm(df.iterrows(), total=df.shape[0]):
         if df.at[index, field_entropy_value] != 0.0:
             continue
@@ -65,14 +63,27 @@ def estimate_dataset(
 
         inputs = tokenizer(formatted_prompt, return_tensors="pt").to(DEVICE)
 
-        outputs = model.generate(**inputs, max_new_tokens=max_new_tokens, pad_token_id=tokenizer.eos_token_id)
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=max_new_tokens,
+            return_dict_in_generate=True,
+            output_scores=True,
+            temperature=None,
+            top_p=None,
+            top_k=None,
+            do_sample=False,
+            num_beams=1,
+            pad_token_id=tokenizer.eos_token_id,
+        )
         # print(f"loop {index} -> after generate: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
 
         input_length = inputs.input_ids.shape[1]
-        answer_raw = outputs[0, input_length:]
+        answer_raw = outputs.sequences[0, input_length:]
         answer = tokenizer.decode(answer_raw, skip_special_tokens=True)
         if answer in mmlu_prompts.option_ids:
-            entropy = entropy_estimator.calculate(outputs)
+            # unpack tuple, batch_dim
+            final_token_logits = outputs.scores[0][0]
+            entropy = compute_entropy_from_logits(final_token_logits)
             # print(f"loop {index} -> after entropy: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
             df.at[index, field_entropy_value] = entropy
             df.at[index, field_ans] = answer
@@ -80,9 +91,9 @@ def estimate_dataset(
         else:
             invalid_answers += 1
 
-        # print(
-        #     f"Answer: {answer}\nEntropy: {df.at[index, field_entropy_value]}\nis_correct: {df.at[index, field_ans_correct]}\n\n"
-        # )
+        print(
+            f"Answer: {answer}\nEntropy: {df.at[index, field_entropy_value]}\nis_correct: {df.at[index, field_ans_correct]}\ndims:{input_length}, {outputs.sequences.shape}\n\n"
+        )
 
         if index % dump_every == 0:
             df.to_csv(out_filename, sep="\t", index=False)
