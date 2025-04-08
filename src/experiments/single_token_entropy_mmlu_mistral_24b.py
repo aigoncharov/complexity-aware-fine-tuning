@@ -17,6 +17,9 @@ model = AutoModelForCausalLM.from_pretrained(
     device_map=DEVICE_MAP,
 )
 
+inferred_device_map = model.hf_device_map
+print("\nInferred Device Map:", inferred_device_map)
+
 
 def verify_model_answer(row, model_answer):
     try:
