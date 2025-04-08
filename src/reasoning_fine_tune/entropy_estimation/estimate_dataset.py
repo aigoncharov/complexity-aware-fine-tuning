@@ -81,8 +81,8 @@ def estimate_dataset(
         answer_raw = outputs.sequences[0, input_length:]
         answer = tokenizer.decode(answer_raw, skip_special_tokens=True)
         if answer in mmlu_prompts.option_ids:
-            # unpack tuple, batch_dim
-            final_token_logits = outputs.scores[0][0]
+            # generated token position, batch_dim
+            final_token_logits = outputs.scores[-1][0]
             entropy = compute_entropy_from_logits(final_token_logits)
             # print(f"loop {index} -> after entropy: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
             df.at[index, field_entropy_value] = entropy
