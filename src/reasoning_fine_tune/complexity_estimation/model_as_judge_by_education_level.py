@@ -45,7 +45,7 @@ def estimate_rating(api_client: MistralAPIClient, df, index, question, answer):
         ]
     )
     response = chat_response.choices[0].message.content
-    print(response)
+    # print(response)
 
     rating = re.search("\\[\\[(\\d+?)\\]\\]", response).group(1)
     # print(rating)
