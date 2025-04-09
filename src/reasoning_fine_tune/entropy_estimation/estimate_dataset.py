@@ -21,6 +21,7 @@ def estimate_dataset(
     verify_answer,
     dump_every=100,
     max_new_tokens=1,
+    get_user_prompt=mmlu_prompts.single_token_answer_prompt,
 ):
     invalid_answers = 0
 
@@ -54,7 +55,7 @@ def estimate_dataset(
         # print(f"loop {index} -> start: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
 
         sys_prompt = mmlu_prompts.get_sys_prompt(get_subject_from_row(row))
-        user_prompt = mmlu_prompts.get_user_prompt(get_question_from_row(row), get_options_from_row(row))
+        user_prompt = get_user_prompt(get_question_from_row(row), get_options_from_row(row))
         messages = [
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": user_prompt},

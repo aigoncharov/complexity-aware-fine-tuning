@@ -10,7 +10,7 @@ from reasoning_fine_tune.prompts.estimate_education_level import (
     valid_education_levels,
     valid_ratings,
 )
-from reasoning_fine_tune.prompts.mmlu import get_user_prompt
+from reasoning_fine_tune.prompts.mmlu import single_token_answer_prompt
 from reasoning_fine_tune.utils.mistral_api_client import MistralAPIClient
 
 FIELD_RATING = "masj_rating"
@@ -112,7 +112,7 @@ def estimate_dataset(
         if df.at[index, FIELD_COMPLEXITY] in valid_education_levels and df.at[index, FIELD_RATING] in valid_ratings:
             continue
 
-        question = get_user_prompt(get_question_from_row(row), get_options_from_row(row))
+        question = single_token_answer_prompt(get_question_from_row(row), get_options_from_row(row))
         # print(complexity_user_prompt)
 
         try:

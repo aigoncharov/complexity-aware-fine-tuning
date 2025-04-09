@@ -14,7 +14,13 @@ def get_sys_prompt(subject: str | None = None):
 option_ids = [str(i + 1) for i in range(20)]
 
 
-def get_user_prompt(question: str, options: List[str]):
+def single_token_answer_prompt(question: str, options: List[str]):
     options_str = "\n".join([f"{option_id}. {answer}".strip() for option_id, answer in zip(option_ids, options)])
     user_prompt = f"Question: {question.strip()}\nOptions:\n{options_str}\nChoose one of the answers. Write down ONLY the NUMBER of the correct answer and nothing else."
+    return user_prompt
+
+
+def single_token_answer_prompt_with_fallback_for_unknown_answers(question: str, options: List[str]):
+    options_str = "\n".join([f"{option_id}. {answer}".strip() for option_id, answer in zip(option_ids, options)])
+    user_prompt = f"Question: {question.strip()}\nOptions:\n{options_str}\nChoose one of the answers. If you know the answer, write down ONLY the NUMBER of the correct answer and nothing else. If you do not know the answer, write down 0."
     return user_prompt
