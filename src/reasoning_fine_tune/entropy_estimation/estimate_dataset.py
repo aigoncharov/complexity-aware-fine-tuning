@@ -56,6 +56,7 @@ def estimate_dataset(
 
         sys_prompt = mmlu_prompts.get_sys_prompt(get_subject_from_row(row))
         user_prompt = get_user_prompt(get_question_from_row(row), get_options_from_row(row))
+        # print(user_prompt)
         messages = [
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": user_prompt},
