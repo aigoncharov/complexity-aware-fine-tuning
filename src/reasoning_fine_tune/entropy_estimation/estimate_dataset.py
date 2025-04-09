@@ -82,7 +82,8 @@ def estimate_dataset(
         input_length = inputs.input_ids.shape[1]
         answer_raw = outputs.sequences[0, input_length:]
         answer = tokenizer.decode(answer_raw, skip_special_tokens=True)
-        if answer in mmlu_prompts.option_ids:
+        # 0 is a special exception for "do not know"
+        if answer in mmlu_prompts.option_ids or answer == "0":
             # generated token position, batch_dim
             final_token_logits = outputs.scores[-1][0]
             entropy = compute_entropy_from_logits(final_token_logits)
