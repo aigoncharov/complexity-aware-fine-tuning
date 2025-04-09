@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-def visualize_entropy_all(df, x, hue):
+def visualize_entropy_all(df, x, hue, model_name=None):
     plt.figure(figsize=(14, 6))
     ax = sns.histplot(
         df,
@@ -17,6 +17,8 @@ def visualize_entropy_all(df, x, hue):
     plt.legend(
         handles=ax.get_legend().legend_handles, labels=["Incorrect", "Correct"], title="Answer", loc="upper right"
     )
+    if model_name is not None:
+        plt.title(model_name)
     # plt.savefig("entropy_phi4.pdf")
 
     plt.figure(figsize=(14, 6))
@@ -31,3 +33,5 @@ def visualize_entropy_all(df, x, hue):
     ax.set_xlabel("Entropy")
     ax.set_ylabel("Proportion")
     plt.legend(handles=ax.get_legend().legend_handles, labels=["Incorrect", "Correct"], title="Answer")
+    if model_name is not None:
+        plt.title(model_name)
