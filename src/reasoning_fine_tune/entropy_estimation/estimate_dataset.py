@@ -82,14 +82,16 @@ def estimate_dataset(
         input_length = inputs.input_ids.shape[1]
         answer_raw = outputs.sequences[0, input_length:]
         answer = tokenizer.decode(answer_raw, skip_special_tokens=True)
+
+        df.at[index, field_ans] = answer
+        # generated token position, batch_dim
+        final_token_logits = outputs.scores[-1][0]
+        entropy = compute_entropy_from_logits(final_token_logits)
+        df.at[index, field_entropy_value] = entropy
+
         # 0 is a special exception for "do not know"
         if answer in mmlu_prompts.option_ids or answer == "0":
-            # generated token position, batch_dim
-            final_token_logits = outputs.scores[-1][0]
-            entropy = compute_entropy_from_logits(final_token_logits)
             # print(f"loop {index} -> after entropy: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
-            df.at[index, field_entropy_value] = entropy
-            df.at[index, field_ans] = answer
             df.at[index, field_ans_correct] = verify_answer(row, answer)
         else:
             invalid_answers += 1
