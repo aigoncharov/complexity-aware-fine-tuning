@@ -5,7 +5,10 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from reasoning_fine_tune.entropy_estimation.estimate_dataset import estimate_dataset
-from reasoning_fine_tune.prompts.mmlu import single_token_answer_prompt_with_fallback_for_unknown_answers
+from reasoning_fine_tune.prompts.mmlu import (
+    single_token_answer_prompt_with_fallback_for_unknown_answers,
+    single_token_sys_prompt_with_fallback_for_unknown_answers,
+)
 from reasoning_fine_tune.utils.device import DEVICE_MAP
 
 print(f"Using device: {DEVICE_MAP}")
@@ -38,5 +41,6 @@ estimate_dataset(
     get_question_from_row=lambda row: row["question"],
     get_options_from_row=lambda row: ast.literal_eval(row["options"]),
     verify_answer=verify_model_answer,
+    get_sys_prompt=single_token_sys_prompt_with_fallback_for_unknown_answers,
     get_user_prompt=single_token_answer_prompt_with_fallback_for_unknown_answers,
 )
