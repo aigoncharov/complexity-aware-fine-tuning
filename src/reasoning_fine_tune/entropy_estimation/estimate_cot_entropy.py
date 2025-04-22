@@ -47,9 +47,9 @@ def estimate_dataset(
     if field_ans_correct not in df.columns:
         df[field_ans_correct] = False
     if field_entropy_value not in df.columns:
-        df[field_entropy_value] = pd.array([], dtype="float")
+        df[field_entropy_value] = ""
     if field_entropy_formatted_ans_token_index not in df.columns:
-        df[field_entropy_formatted_ans_token_index] = pd.array([], dtype="int")
+        df[field_entropy_formatted_ans_token_index] = ""
     if field_ans not in df.columns:
         df[field_ans] = ""
 
@@ -121,10 +121,10 @@ def estimate_dataset(
                     # Extract option id by removing answer markers
                     extracted_answer = extracted_answer.split(answer_marker[0])[0].split(answer_marker[1])[0]
 
-        df.at[index, field_entropy_value] = output_entropy
+        df.at[index, field_entropy_value] = ",".join(f"{output_entropy:.4f}")
 
         if answer_marker_start != -1 and answer_marker_end != -1:
-            df.at[index, field_entropy_formatted_ans_token_index] = [answer_marker_start, answer_marker_end]
+            df.at[index, field_entropy_formatted_ans_token_index] = f"{answer_marker_start},{answer_marker_end}"
 
         if validate_mmlu_answer(extracted_answer):
             # print(f"loop {index} -> after entropy: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
