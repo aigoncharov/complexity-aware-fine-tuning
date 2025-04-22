@@ -5,9 +5,10 @@ import pandas as pd
 import torch
 from tqdm import tqdm
 
-import reasoning_fine_tune.prompts.mmlu_cot_answer as mmlu_prompts
 from reasoning_fine_tune.entropy_estimation.logit_entropy import compute_entropy_from_logits
+from reasoning_fine_tune.prompts.mmlu_cot_answer import answer_marker, cot_answer_prompt, cot_sys_prompt
 from reasoning_fine_tune.utils.device import DEVICE
+from reasoning_fine_tune.utils.validation import validate_mmlu_answer
 
 
 def estimate_dataset(
@@ -21,8 +22,8 @@ def estimate_dataset(
     verify_answer,
     dump_every=100,
     max_new_tokens=1024,
-    get_sys_prompt=mmlu_prompts.cot_sys_prompt,
-    get_user_prompt=mmlu_prompts.cot_answer_prompt,
+    get_sys_prompt=cot_sys_prompt,
+    get_user_prompt=cot_answer_prompt,
 ):
     invalid_answers = 0
 
@@ -41,19 +42,19 @@ def estimate_dataset(
     field_ans = f"entropy_ans_{model_name}"
     field_ans_correct = f"entropy_ans_correct_{model_name}"
     field_entropy_value = f"entropy_value_{model_name}"
-    field_entropy_value_ans_index = f"entropy_value_ans_index_{model_name}"
+    field_entropy_formatted_ans_token_index = f"entropy_formatted_ans_token_index_{model_name}"
 
     if field_ans_correct not in df.columns:
         df[field_ans_correct] = False
     if field_entropy_value not in df.columns:
         df[field_entropy_value] = pd.array([], dtype="float")
-    if field_entropy_value_ans_index not in df.columns:
-        df[field_entropy_value_ans_index] = -1
+    if field_entropy_formatted_ans_token_index not in df.columns:
+        df[field_entropy_formatted_ans_token_index] = pd.array([], dtype="int")
     if field_ans not in df.columns:
         df[field_ans] = ""
 
     for index, row in tqdm(df.iterrows(), total=df.shape[0]):
-        if df.at[index, field_ans] != "":
+        if validate_mmlu_answer(df.at[index, field_ans]):
             continue
 
         # print(f"loop {index} -> start: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
@@ -89,24 +90,51 @@ def estimate_dataset(
 
         df.at[index, field_ans] = answer
 
+        output_str: str = ""
+        extracted_answer: str = ""
+        answer_marker_start = -1
+        answer_marker_end = -1
         output_entropy = []
         for i in range(len(outputs.scores)):
             # generated token position, batch_dim
             token_logits = outputs.scores[i][0]
             token_entropy = compute_entropy_from_logits(token_logits)
             output_entropy.append(token_entropy)
+
+            token = token_logits.argmax(dim=-1)
+            token_str = tokenizer.decode(token, skip_special_tokens=True)
+            output_str += token_str
+
+            if answer_marker_start == -1:
+                if answer_marker[0] in output_str:
+                    answer_marker_start = i
+
+                    # Start accumulating extracted answer
+                    extracted_answer += token_str
+            elif answer_marker_end == -1:
+                # Accumulate extracted answer until we see the "enf of answer" marker
+                extracted_answer += token_str
+
+                if answer_marker[1] in output_str:
+                    answer_marker_end = i
+
+                    # Extract option id by removing answer markers
+                    extracted_answer = extracted_answer.split(answer_marker[0])[0].split(answer_marker[1])[0]
+
         df.at[index, field_entropy_value] = output_entropy
 
-        # 0 is a special exception for "do not know"
-        if answer in mmlu_prompts.option_ids or answer == "0":
+        if answer_marker_start != -1 and answer_marker_end != -1:
+            df.at[index, field_entropy_formatted_ans_token_index] = [answer_marker_start, answer_marker_end]
+
+        if validate_mmlu_answer(extracted_answer):
             # print(f"loop {index} -> after entropy: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
-            df.at[index, field_ans_correct] = verify_answer(row, answer)
+            df.at[index, field_ans_correct] = verify_answer(row, extracted_answer)
         else:
             invalid_answers += 1
 
-        # print(
-        #     f"Answer: {answer}\nEntropy: {df.at[index, field_entropy_value]}\nis_correct: {df.at[index, field_ans_correct]}\ndims:{input_length}, {outputs.sequences.shape}\n\n"
-        # )
+        print(
+            f"CoT: {answer}\nExtracted answer: {extracted_answer}\nAnswer token indecies: {df.at[index, field_entropy_formatted_ans_token_index]}\nEntropy: {df.at[index, field_entropy_value]}\nis_correct: {df.at[index, field_ans_correct]}\ndims:{input_length}, {outputs.sequences.shape}\n\n"
+        )
 
         if index % dump_every == 0:
             df.to_csv(out_filename, sep="\t", index=False)

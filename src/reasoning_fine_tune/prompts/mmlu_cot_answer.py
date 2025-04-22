@@ -1,5 +1,7 @@
 from typing import List
 
+answer_marker = ("[[", "]]")
+
 
 def cot_sys_prompt(subject: str | None = None):
     if subject is not None:
@@ -7,7 +9,7 @@ def cot_sys_prompt(subject: str | None = None):
     else:
         sys_msg = "The following are multiple choice questions."
 
-    sys_msg += " Explain your thinking process step-by-step. At the end, write down the number of the correct answer by strictly following this format: [[number_of_correct_answer]]."
+    sys_msg += f" Explain your thinking process step-by-step. At the end, write down the number of the correct answer by strictly following this format: {answer_marker[0]}number_of_correct_answer{answer_marker[1]}."
     return sys_msg
 
 
@@ -17,7 +19,7 @@ def cot_sys_prompt_with_fallback_for_unknown_answers(subject: str | None = None)
     else:
         sys_msg = "The following are multiple choice questions."
 
-    sys_msg += " Explain your thinking process step-by-step. At the end, if you are certain about the answer write down the number of the correct answer by strictly following this format: [[number_of_correct_answer]], otherwise return [[0]]."
+    sys_msg += f" Explain your thinking process step-by-step. At the end, if you are certain about the answer write down the number of the correct answer by strictly following this format: {answer_marker[0]}number_of_correct_answer{answer_marker[1]}, otherwise return {answer_marker[0]}0{answer_marker[1]}."
     return sys_msg
 
 
@@ -27,7 +29,7 @@ def cot_sys_prompt_with_fallback_for_unknown_answers_alternative(subject: str | 
     else:
         sys_msg = "The following are multiple choice questions."
 
-    sys_msg += " Explain your thinking process step-by-step. At the end, if you know the answer write down the number of the correct answer by strictly following this format: [[number_of_correct_answer]], otherwise return [[0]]."
+    sys_msg += f" Explain your thinking process step-by-step. At the end, if you know the answer write down the number of the correct answer by strictly following this format: {answer_marker[0]}number_of_correct_answer{answer_marker[1]}, otherwise return {answer_marker[0]}0{answer_marker[1]}."
     return sys_msg
 
 
