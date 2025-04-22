@@ -5,7 +5,7 @@ import pandas as pd
 import torch
 from tqdm import tqdm
 
-import reasoning_fine_tune.prompts.mmlu as mmlu_prompts
+import reasoning_fine_tune.prompts.mmlu_cot_answer as mmlu_prompts
 from reasoning_fine_tune.entropy_estimation.logit_entropy import compute_entropy_from_logits
 from reasoning_fine_tune.utils.device import DEVICE
 
@@ -20,9 +20,9 @@ def estimate_dataset(
     get_options_from_row,
     verify_answer,
     dump_every=100,
-    max_new_tokens=1,
-    get_sys_prompt=mmlu_prompts.single_token_sys_prompt,
-    get_user_prompt=mmlu_prompts.single_token_answer_prompt,
+    max_new_tokens=1024,
+    get_sys_prompt=mmlu_prompts.cot_sys_prompt,
+    get_user_prompt=mmlu_prompts.cot_answer_prompt,
 ):
     invalid_answers = 0
 
@@ -41,16 +41,19 @@ def estimate_dataset(
     field_ans = f"entropy_ans_{model_name}"
     field_ans_correct = f"entropy_ans_correct_{model_name}"
     field_entropy_value = f"entropy_value_{model_name}"
+    field_entropy_value_ans_index = f"entropy_value_ans_index_{model_name}"
 
     if field_ans_correct not in df.columns:
         df[field_ans_correct] = False
     if field_entropy_value not in df.columns:
-        df[field_entropy_value] = 0.0
+        df[field_entropy_value] = pd.array([], dtype="float")
+    if field_entropy_value_ans_index not in df.columns:
+        df[field_entropy_value_ans_index] = -1
     if field_ans not in df.columns:
         df[field_ans] = ""
 
     for index, row in tqdm(df.iterrows(), total=df.shape[0]):
-        if df.at[index, field_entropy_value] != 0.0:
+        if df.at[index, field_ans] != "":
             continue
 
         # print(f"loop {index} -> start: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
@@ -85,10 +88,14 @@ def estimate_dataset(
         answer = tokenizer.decode(answer_raw, skip_special_tokens=True)
 
         df.at[index, field_ans] = answer
-        # generated token position, batch_dim
-        final_token_logits = outputs.scores[-1][0]
-        entropy = compute_entropy_from_logits(final_token_logits)
-        df.at[index, field_entropy_value] = entropy
+
+        output_entropy = []
+        for i in range(len(outputs.scores)):
+            # generated token position, batch_dim
+            token_logits = outputs.scores[i][0]
+            token_entropy = compute_entropy_from_logits(token_logits)
+            output_entropy.append(token_entropy)
+        df.at[index, field_entropy_value] = output_entropy
 
         # 0 is a special exception for "do not know"
         if answer in mmlu_prompts.option_ids or answer == "0":

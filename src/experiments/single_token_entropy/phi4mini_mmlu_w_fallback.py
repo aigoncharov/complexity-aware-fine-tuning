@@ -13,7 +13,7 @@ from reasoning_fine_tune.utils.device import DEVICE_MAP
 
 print(f"Using device: {DEVICE_MAP}")
 
-MODEL_NAME = "microsoft/phi-4"
+MODEL_NAME = "microsoft/Phi-4-mini-instruct"
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
@@ -33,7 +33,7 @@ def verify_model_answer(row, model_answer):
 estimate_dataset(
     in_filename=Path(__file__).joinpath("../../../data/source/mmlu_pro_stem.tsv").resolve(),
     out_filename=Path(__file__)
-    .joinpath("../../../data/out/single_token_entropy/mmlu_phi4_single_token_w_fallback_if_unknown.tsv")
+    .joinpath("../../../data/out/single_token_entropy/mmlu_phi4mini_single_token_w_fallback_if_unknown.tsv")
     .resolve(),
     model=model,
     tokenizer=tokenizer,

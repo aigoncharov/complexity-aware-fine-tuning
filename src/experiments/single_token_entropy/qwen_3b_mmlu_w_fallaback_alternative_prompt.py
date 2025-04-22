@@ -4,8 +4,8 @@ from pathlib import Path
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from reasoning_fine_tune.entropy_estimation.estimate_dataset import estimate_dataset
-from reasoning_fine_tune.prompts.mmlu import (
+from reasoning_fine_tune.entropy_estimation.estimate_single_token_entropy import estimate_dataset
+from reasoning_fine_tune.prompts.mmlu_single_token_answer import (
     single_token_answer_prompt_with_fallback_for_unknown_answers_alternative,
     single_token_sys_prompt_with_fallback_for_unknown_answers_alternative,
 )

@@ -10,7 +10,7 @@ from reasoning_fine_tune.prompts.estimate_education_level import (
     valid_education_levels,
     valid_ratings,
 )
-from reasoning_fine_tune.prompts.mmlu import single_token_answer_prompt
+from reasoning_fine_tune.prompts.mmlu_single_token_answer import single_token_answer_prompt
 from reasoning_fine_tune.utils.mistral_api_client import MistralAPIClient
 
 FIELD_RATING = "masj_rating"
