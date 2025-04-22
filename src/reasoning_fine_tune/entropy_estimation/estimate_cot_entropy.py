@@ -19,7 +19,7 @@ def estimate_dataset(
     get_subject_from_row,
     get_question_from_row,
     get_options_from_row,
-    verify_answer,
+    check_answer_correct,
     dump_every=100,
     max_new_tokens=1024,
     get_sys_prompt=cot_sys_prompt,
@@ -128,7 +128,7 @@ def estimate_dataset(
 
         if validate_mmlu_answer(extracted_answer):
             # print(f"loop {index} -> after entropy: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
-            df.at[index, field_ans_correct] = verify_answer(row, extracted_answer)
+            df.at[index, field_ans_correct] = check_answer_correct(row, extracted_answer)
         else:
             invalid_answers += 1
 
