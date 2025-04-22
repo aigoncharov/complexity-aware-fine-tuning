@@ -119,7 +119,7 @@ def estimate_dataset(
                     answer_marker_end = i
 
                     # Extract option id by removing answer markers
-                    extracted_answer = extracted_answer.split(answer_marker[0])[0].split(answer_marker[1])[0]
+                    extracted_answer = extracted_answer.split(answer_marker[0])[-1].split(answer_marker[1])[0]
 
         df.at[index, field_entropy_value] = ",".join(
             [f"{single_token_entropy:.4f}" for single_token_entropy in output_entropy]
