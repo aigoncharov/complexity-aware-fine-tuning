@@ -8,11 +8,7 @@ from tqdm import tqdm
 import reasoning_fine_tune.prompts.mmlu_single_token_answer as mmlu_prompts
 from reasoning_fine_tune.entropy_estimation.logit_entropy import compute_entropy_from_logits
 from reasoning_fine_tune.utils.device import DEVICE
-
-
-def validate_answer(answer: str):
-    # 0 is a special exception for "do not know"
-    return answer in mmlu_prompts.option_ids or answer == "0"
+from reasoning_fine_tune.utils.validation import validate_mmlu_answer
 
 
 def estimate_dataset(
@@ -55,7 +51,7 @@ def estimate_dataset(
         df[field_ans] = ""
 
     for index, row in tqdm(df.iterrows(), total=df.shape[0]):
-        if validate_answer(df.at[index, field_ans]):
+        if validate_mmlu_answer(df.at[index, field_ans]):
             continue
 
         # print(f"loop {index} -> start: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
@@ -96,7 +92,7 @@ def estimate_dataset(
         df.at[index, field_entropy_value] = entropy
 
         # 0 is a special exception for "do not know"
-        if validate_answer(answer):
+        if validate_mmlu_answer(answer):
             # print(f"loop {index} -> after entropy: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
             df.at[index, field_ans_correct] = check_answer_correct(row, answer)
         else:
