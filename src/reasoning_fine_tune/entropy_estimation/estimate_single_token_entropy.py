@@ -10,6 +10,11 @@ from reasoning_fine_tune.entropy_estimation.logit_entropy import compute_entropy
 from reasoning_fine_tune.utils.device import DEVICE
 
 
+def validate_answer(answer: str):
+    # 0 is a special exception for "do not know"
+    return answer in mmlu_prompts.option_ids or answer == "0"
+
+
 def estimate_dataset(
     in_filename,
     out_filename,
@@ -18,7 +23,7 @@ def estimate_dataset(
     get_subject_from_row,
     get_question_from_row,
     get_options_from_row,
-    verify_answer,
+    check_answer_correct,
     dump_every=100,
     max_new_tokens=1,
     get_sys_prompt=mmlu_prompts.single_token_sys_prompt,
@@ -50,7 +55,7 @@ def estimate_dataset(
         df[field_ans] = ""
 
     for index, row in tqdm(df.iterrows(), total=df.shape[0]):
-        if df.at[index, field_entropy_value] != 0.0:
+        if validate_answer(df.at[index, field_ans]):
             continue
 
         # print(f"loop {index} -> start: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
@@ -91,9 +96,9 @@ def estimate_dataset(
         df.at[index, field_entropy_value] = entropy
 
         # 0 is a special exception for "do not know"
-        if answer in mmlu_prompts.option_ids or answer == "0":
+        if validate_answer(answer):
             # print(f"loop {index} -> after entropy: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
-            df.at[index, field_ans_correct] = verify_answer(row, answer)
+            df.at[index, field_ans_correct] = check_answer_correct(row, answer)
         else:
             invalid_answers += 1
 

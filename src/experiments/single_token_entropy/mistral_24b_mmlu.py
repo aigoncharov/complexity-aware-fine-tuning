@@ -19,7 +19,7 @@ inferred_device_map = model.hf_device_map
 print("\nInferred Device Map:", inferred_device_map)
 
 
-def verify_model_answer(row, model_answer):
+def check_answer_correct(row, model_answer):
     try:
         return int(row["answer_index"]) + 1 == int(model_answer)
     except:
@@ -36,5 +36,5 @@ estimate_dataset(
     get_subject_from_row=lambda row: row["base_cluster"],
     get_question_from_row=lambda row: row["question"],
     get_options_from_row=lambda row: ast.literal_eval(row["options"]),
-    verify_answer=verify_model_answer,
+    check_answer_correct=check_answer_correct,
 )
