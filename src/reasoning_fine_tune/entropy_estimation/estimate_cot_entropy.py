@@ -121,7 +121,9 @@ def estimate_dataset(
                     # Extract option id by removing answer markers
                     extracted_answer = extracted_answer.split(answer_marker[0])[0].split(answer_marker[1])[0]
 
-        df.at[index, field_entropy_value] = ",".join(f"{output_entropy:.4f}")
+        df.at[index, field_entropy_value] = ",".join(
+            [f"{single_token_entropy:.4f}" for single_token_entropy in output_entropy]
+        )
 
         if answer_marker_start != -1 and answer_marker_end != -1:
             df.at[index, field_entropy_formatted_ans_token_index] = f"{answer_marker_start},{answer_marker_end}"
