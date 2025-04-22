@@ -15,9 +15,11 @@ print(f"Using device: {DEVICE_MAP}")
 
 MODEL_NAME = "microsoft/Phi-4-mini-instruct"
 
-tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME, trust_remote_code=True)
 
-model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, device_map=DEVICE_MAP, torch_dtype=torch.bfloat16)
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME, device_map=DEVICE_MAP, torch_dtype=torch.bfloat16, trust_remote_code=True
+)
 
 inferred_device_map = model.hf_device_map
 print("\nInferred Device Map:", inferred_device_map)
