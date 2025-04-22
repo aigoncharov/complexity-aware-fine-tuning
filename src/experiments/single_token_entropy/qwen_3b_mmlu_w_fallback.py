@@ -31,9 +31,9 @@ def verify_model_answer(row, model_answer):
 
 
 estimate_dataset(
-    in_filename=Path(__file__).joinpath("../../../data/source/mmlu_pro_stem.tsv").resolve(),
+    in_filename=Path(__file__).parent.joinpath("../../../data/source/mmlu_pro_stem.tsv").resolve(),
     out_filename=Path(__file__)
-    .joinpath("../../../data/out/single_token_entropy/mmlu_qwen_3b_single_token_w_fallback_if_unknown.tsv")
+    .parent.joinpath("../../../data/out/single_token_entropy/mmlu_qwen_3b_single_token_w_fallback_if_unknown.tsv")
     .resolve(),
     model=model,
     tokenizer=tokenizer,

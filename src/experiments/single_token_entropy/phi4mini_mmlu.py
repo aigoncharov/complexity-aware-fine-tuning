@@ -29,9 +29,9 @@ def verify_model_answer(row, model_answer):
 
 
 estimate_dataset(
-    in_filename=Path(__file__).joinpath("../../../data/source/mmlu_pro_stem.tsv").resolve(),
+    in_filename=Path(__file__).parent.joinpath("../../../data/source/mmlu_pro_stem.tsv").resolve(),
     out_filename=Path(__file__)
-    .joinpath("../../../data/out/single_token_entropy/mmlu_phi4mini_single_token.tsv")
+    .parent.joinpath("../../../data/out/single_token_entropy/mmlu_phi4mini_single_token.tsv")
     .resolve(),
     model=model,
     tokenizer=tokenizer,

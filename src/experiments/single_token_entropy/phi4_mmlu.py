@@ -27,8 +27,10 @@ def verify_model_answer(row, model_answer):
 
 
 estimate_dataset(
-    in_filename=Path(__file__).joinpath("../../../data/source/mmlu_pro_stem.tsv").resolve(),
-    out_filename=Path(__file__).joinpath("../../../data/out/single_token_entropy/mmlu_phi4_single_token.tsv").resolve(),
+    in_filename=Path(__file__).parent.joinpath("../../../data/source/mmlu_pro_stem.tsv").resolve(),
+    out_filename=Path(__file__)
+    .parent.joinpath("../../../data/out/single_token_entropy/mmlu_phi4_single_token.tsv")
+    .resolve(),
     model=model,
     tokenizer=tokenizer,
     get_subject_from_row=lambda row: row["base_cluster"],
