@@ -30,7 +30,7 @@ estimate_dataset(
     in_filename=Path(__file__).parent.joinpath("../../../data/source/mmlu_pro_stem.tsv").resolve(),
     out_filename=Path(__file__)
     .parent.joinpath(
-        "../../../data/out/single_token_entropy/mmlu_phi4mini_single_token_w_fallback_if_unknown_alternative_prompt.tsv"
+        "../../../data/out/single_token_entropy/mmlu_phi4mini_w_fallback_if_unknown_alternative_prompt.tsv"
     )
     .resolve(),
     model=model,

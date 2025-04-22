@@ -26,7 +26,7 @@ print("\nInferred Device Map:", inferred_device_map)
 estimate_dataset(
     in_filename=Path(__file__).parent.joinpath("../../../data/source/mmlu_pro_stem.tsv").resolve(),
     out_filename=Path(__file__)
-    .parent.joinpath("../../../data/out/single_token_entropy/mmlu_mistral_24b_single_token_w_fallback_if_unknown.tsv")
+    .parent.joinpath("../../../data/out/single_token_entropy/mmlu_mistral_24b_w_fallback_if_unknown.tsv")
     .resolve(),
     model=model,
     tokenizer=tokenizer,

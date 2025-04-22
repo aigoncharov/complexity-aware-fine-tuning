@@ -22,9 +22,7 @@ print("\nInferred Device Map:", inferred_device_map)
 
 estimate_dataset(
     in_filename=Path(__file__).parent.joinpath("../../../data/source/mmlu_pro_stem.tsv").resolve(),
-    out_filename=Path(__file__)
-    .parent.joinpath("../../../data/out/single_token_entropy/mmlu_phi4_single_token.tsv")
-    .resolve(),
+    out_filename=Path(__file__).parent.joinpath("../../../data/out/single_token_entropy/mmlu_phi4.tsv").resolve(),
     model=model,
     tokenizer=tokenizer,
     get_subject_from_row=lambda row: row["base_cluster"],
