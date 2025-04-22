@@ -7,7 +7,7 @@ def visualize_entropy_all(df, x, hue, model_name=None):
     ax = sns.histplot(
         df,
         x=x,
-        bins=[x * 0.1 for x in range(0, 10)],
+        bins=30,
         hue=hue,
         hue_order=[False, True],
         multiple="dodge",
@@ -25,7 +25,7 @@ def visualize_entropy_all(df, x, hue, model_name=None):
     ax = sns.histplot(
         df,
         x=x,
-        bins=[x * 0.1 for x in range(0, 10)],
+        bins=30,
         hue=hue,
         hue_order=[False, True],
         multiple="fill",

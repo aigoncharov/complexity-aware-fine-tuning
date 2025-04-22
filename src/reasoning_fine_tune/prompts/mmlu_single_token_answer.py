@@ -32,6 +32,8 @@ def single_token_sys_prompt_with_fallback_for_unknown_answers_alternative(subjec
 
 
 option_ids = [str(i + 1) for i in range(20)]
+# 0 is a special exception for "do not know"
+option_ids_w_fallback = option_ids + ["0"]
 
 
 def single_token_answer_prompt(question: str, options: List[str]):

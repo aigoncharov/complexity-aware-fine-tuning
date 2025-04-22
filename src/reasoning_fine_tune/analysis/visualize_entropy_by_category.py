@@ -8,7 +8,6 @@ def visualize_entropy_by_category(df, category, x, hue, model_name=None):
         ax = sns.histplot(
             df.loc[df[category].isin([cat]), :],
             x=x,
-            bins=[x * 0.1 for x in range(0, 10)],
             hue=hue,
             hue_order=[False, True],
             multiple="dodge",
