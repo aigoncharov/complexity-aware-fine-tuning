@@ -9,6 +9,7 @@ from reasoning_fine_tune.prompts.mmlu_single_token_answer import (
     single_token_answer_prompt_with_fallback_for_unknown_answers_alternative,
     single_token_sys_prompt_with_fallback_for_unknown_answers_alternative,
 )
+from reasoning_fine_tune.utils.correctness import check_answer_correct_mmlu
 from reasoning_fine_tune.utils.device import DEVICE_MAP
 
 print(f"Using device: {DEVICE_MAP}")
@@ -23,13 +24,6 @@ inferred_device_map = model.hf_device_map
 print("\nInferred Device Map:", inferred_device_map)
 
 
-def check_answer_correct(row, model_answer):
-    try:
-        return int(row["answer_index"]) + 1 == int(model_answer)
-    except:
-        return False
-
-
 estimate_dataset(
     in_filename=Path(__file__).parent.joinpath("../../../data/source/mmlu_pro_stem.tsv").resolve(),
     out_filename=Path(__file__)
@@ -42,7 +36,7 @@ estimate_dataset(
     get_subject_from_row=lambda row: row["base_cluster"],
     get_question_from_row=lambda row: row["question"],
     get_options_from_row=lambda row: ast.literal_eval(row["options"]),
-    check_answer_correct=check_answer_correct,
+    check_answer_correct=check_answer_correct_mmlu,
     get_sys_prompt=single_token_sys_prompt_with_fallback_for_unknown_answers_alternative,
     get_user_prompt=single_token_answer_prompt_with_fallback_for_unknown_answers_alternative,
 )
