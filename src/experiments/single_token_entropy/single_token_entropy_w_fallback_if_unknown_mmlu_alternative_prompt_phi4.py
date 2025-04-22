@@ -6,8 +6,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from reasoning_fine_tune.entropy_estimation.estimate_dataset import estimate_dataset
 from reasoning_fine_tune.prompts.mmlu import (
-    single_token_answer_prompt_with_fallback_for_unknown_answers,
-    single_token_sys_prompt_with_fallback_for_unknown_answers,
+    single_token_answer_prompt_with_fallback_for_unknown_answers_alternative,
+    single_token_sys_prompt_with_fallback_for_unknown_answers_alternative,
 )
 from reasoning_fine_tune.utils.device import DEVICE_MAP
 
@@ -33,7 +33,7 @@ def verify_model_answer(row, model_answer):
 estimate_dataset(
     in_filename=Path(__file__).joinpath("../../../data/source/mmlu_pro_stem.tsv").resolve(),
     out_filename=Path(__file__)
-    .joinpath("../../../data/out/mmlu_phi4_single_token_w_fallback_if_unknown.tsv")
+    .joinpath("../../../data/out/single_token_entropy/mmlu_phi4_single_token_w_fallback_if_unknown_alternative_prompt.tsv")
     .resolve(),
     model=model,
     tokenizer=tokenizer,
@@ -41,6 +41,6 @@ estimate_dataset(
     get_question_from_row=lambda row: row["question"],
     get_options_from_row=lambda row: ast.literal_eval(row["options"]),
     verify_answer=verify_model_answer,
-    get_sys_prompt=single_token_sys_prompt_with_fallback_for_unknown_answers,
-    get_user_prompt=single_token_answer_prompt_with_fallback_for_unknown_answers,
+    get_sys_prompt=single_token_sys_prompt_with_fallback_for_unknown_answers_alternative,
+    get_user_prompt=single_token_answer_prompt_with_fallback_for_unknown_answers_alternative,
 )

@@ -9,7 +9,7 @@ from reasoning_fine_tune.utils.device import DEVICE_MAP
 
 print(f"Using device: {DEVICE_MAP}")
 
-MODEL_NAME = "microsoft/phi-4"
+MODEL_NAME = "mistralai/Mistral-Small-24B-Instruct-2501"
 
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 
@@ -28,7 +28,7 @@ def verify_model_answer(row, model_answer):
 
 estimate_dataset(
     in_filename=Path(__file__).joinpath("../../../data/source/mmlu_pro_stem.tsv").resolve(),
-    out_filename=Path(__file__).joinpath("../../../data/out/mmlu_phi4_single_token.tsv").resolve(),
+    out_filename=Path(__file__).joinpath("../../../data/out/single_token_entropy/mmlu_mistral_24b_single_token.tsv").resolve(),
     model=model,
     tokenizer=tokenizer,
     get_subject_from_row=lambda row: row["base_cluster"],
