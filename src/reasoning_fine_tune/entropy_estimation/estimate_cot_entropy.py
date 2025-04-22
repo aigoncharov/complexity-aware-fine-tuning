@@ -20,7 +20,7 @@ def estimate_dataset(
     get_question_from_row,
     get_options_from_row,
     check_answer_correct,
-    dump_every=100,
+    dump_every=10,
     max_new_tokens=1024,
     get_sys_prompt=cot_sys_prompt,
     get_user_prompt=cot_answer_prompt,
