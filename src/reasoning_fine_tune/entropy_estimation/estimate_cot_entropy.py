@@ -106,9 +106,7 @@ def estimate_dataset(
 
         logit_stats = collect_logit_sequence_stats(outputs.scores)
 
-        df.at[index, field_entropies_value] = ",".join(
-            [f"{single_token_entropy:.4f}" for single_token_entropy in logit_stats.entropies]
-        )
+        df.at[index, field_entropies_value] = json.dumps(logit_stats.entropies)
         df.at[index, field_every_token_info] = json.dumps(logit_stats.every_token_stats)
 
         output_str: str = ""
