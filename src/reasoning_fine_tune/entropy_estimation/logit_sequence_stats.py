@@ -34,7 +34,7 @@ def collect_logit_sequence_stats(logits: list[torch.Tensor]):
 
         probabilities = torch.softmax(token_logits, dim=-1)
         # Set small cut-off value
-        mask = probabilities > 0.001
+        mask = probabilities > 1e-5
         nonzero_prob_indices = torch.nonzero(mask)
         nonzero_probs = probabilities[nonzero_prob_indices]
         idx_prob_pairs_list = list(zip(nonzero_prob_indices.cpu().numpy(), nonzero_probs.cpu().numpy()))
