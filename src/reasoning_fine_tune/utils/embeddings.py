@@ -1,13 +1,15 @@
-def pool_embeddings(embeddings):
-    pooled_embeddings = {
-        "min": embeddings.min(dim=0).values.cpu().numpy(),
-        "max": embeddings.max(dim=0).values.cpu().numpy(),
-        "mean": embeddings.mean(dim=0).values.cpu().numpy(),
+import torch
+
+
+def get_embeddings(model, tokenizer, text):
+    inputs = tokenizer(text, return_tensors="pt").to(model.device)
+    with torch.no_grad():
+        outputs = model(**inputs, output_hidden_states=True, return_dict=True)
+    # Layer number (last),  batch size
+    batch_hidden_states = outputs.hidden_states[-1][0].float()
+    pool_embeddings = {
+        "min": batch_hidden_states.min(dim=0).values.cpu().numpy().tolist(),
+        "max": batch_hidden_states.max(dim=0).values.cpu().numpy().tolist(),
+        "mean": batch_hidden_states.mean(dim=0).cpu().numpy().tolist(),
     }
-    print(
-        "batch_hidden_states - post",
-        pooled_embeddings["min"].shape,
-        pooled_embeddings["max"].shape,
-        pooled_embeddings["mean"].shape,
-    )
-    return pooled_embeddings
+    return pool_embeddings

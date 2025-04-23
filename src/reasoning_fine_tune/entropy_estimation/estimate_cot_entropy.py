@@ -9,7 +9,7 @@ from tqdm import tqdm
 from reasoning_fine_tune.entropy_estimation.logit_sequence_stats import collect_logit_sequence_stats
 from reasoning_fine_tune.prompts.mmlu_cot_answer import answer_marker, cot_answer_prompt, cot_sys_prompt
 from reasoning_fine_tune.utils.device import DEVICE
-from reasoning_fine_tune.utils.embeddings import pool_embeddings
+from reasoning_fine_tune.utils.embeddings import get_embeddings
 from reasoning_fine_tune.utils.validation import validate_mmlu_answer
 
 
@@ -22,7 +22,7 @@ def estimate_dataset(
     get_question_from_row,
     get_options_from_row,
     check_answer_correct,
-    dump_every=10,
+    dump_every=100,
     max_new_tokens=1024,
     get_sys_prompt=cot_sys_prompt,
     get_user_prompt=cot_answer_prompt,
@@ -30,13 +30,15 @@ def estimate_dataset(
     invalid_answers = 0
 
     if os.path.exists(out_filename):
-        in_filename = out_filename
-
-    df = pd.read_csv(
-        in_filename,
-        sep="\t",
-        header=0,
-    )
+        df = pd.read_parquet(
+            out_filename,
+        )
+    else:
+        df = pd.read_csv(
+            in_filename,
+            sep="\t",
+            header=0,
+        )
 
     model_name = model.config_class().model_type
     print(model_name)
@@ -89,7 +91,6 @@ def estimate_dataset(
             max_new_tokens=max_new_tokens,
             return_dict_in_generate=True,
             output_scores=True,
-            output_hidden_states=True,
             temperature=None,
             top_p=None,
             top_k=None,
@@ -124,26 +125,21 @@ def estimate_dataset(
                 if answer_marker[1] in output_str:
                     answer_marker_end = i
 
-        hidden_states_last_layer_input = outputs.hidden_states[-1][0, :input_length]
-        hidden_states_last_layer_response = outputs.hidden_states[-1][0, input_length:]
-
         extracted_answer: str = ""
-        if answer_marker_end - answer_marker_start == 2:
+        if answer_marker_end != -1 and answer_marker_start != -1:
             ans_token_index = answer_marker_start + 1
             extracted_answer = tokenizer.decode(logit_stats.greedy_tokens[ans_token_index])
             df.at[index, field_ans_token_index] = ans_token_index
 
-            answer_embeddings = pool_embeddings(
-                hidden_states_last_layer_response[ans_token_index : ans_token_index + 1]
-            )
+            answer_embeddings = get_embeddings(model, tokenizer, extracted_answer)
             df.at[index, field_answer_embeddings] = json.dumps(answer_embeddings)
 
-        input_embeddings = pool_embeddings(hidden_states_last_layer_input)
-        df.at[index, field_input_embeddings] = json.dumps(input_embeddings)
-
-        if answer_marker_start != -1:
-            think_embeddings = pool_embeddings(hidden_states_last_layer_response[:answer_marker_start])
+            think_text = tokenizer.decode(logit_stats.greedy_tokens[:answer_marker_start])
+            think_embeddings = get_embeddings(model, tokenizer, think_text)
             df.at[index, field_think_embeddings] = json.dumps(think_embeddings)
+
+        input_embeddings = get_embeddings(model, tokenizer, formatted_prompt)
+        df.at[index, field_input_embeddings] = json.dumps(input_embeddings)
 
         if validate_mmlu_answer(extracted_answer):
             # print(f"loop {index} -> after entropy: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
@@ -152,12 +148,12 @@ def estimate_dataset(
             invalid_answers += 1
 
         if index % dump_every == 0:
-            df.to_csv(out_filename, sep="\t", index=False)
+            df.to_parquet(out_filename, compression="gzip")
 
         gc.collect()
         if DEVICE == torch.device("cuda"):
             torch.cuda.empty_cache()
 
-    df.to_csv(out_filename, sep="\t", index=False)
+    df.to_parquet(out_filename, compression="gzip")
     print(f"Processed dataset {out_filename}. Total entries: {df.shape[0]}. Invalid answers: {invalid_answers}")
     return df
