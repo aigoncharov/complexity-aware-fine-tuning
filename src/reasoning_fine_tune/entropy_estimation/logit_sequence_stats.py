@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 import torch
@@ -9,11 +9,11 @@ from reasoning_fine_tune.entropy_estimation.logit_entropy import compute_entropy
 @dataclass
 class LogitSeqStats:
     # Generated token selected greedily (no randomness, next token - the most likely one)
-    greedy_tokens: list[torch.Tensor] = []
+    greedy_tokens: list[torch.Tensor] = field(default_factory=list)
     # List of entropies for every generated token
-    entropies: list[float] = []
+    entropies: list[float] = field(default_factory=list)
     # List of raw probabilities for logits with non-zero probabilities for every generated token
-    every_token_stats: list[list[dict[str, Any]]] = []
+    every_token_stats: list[list[dict[str, Any]]] = field(default_factory=list)
 
 
 def collect_logit_sequence_stats(logits: list[torch.Tensor]):
