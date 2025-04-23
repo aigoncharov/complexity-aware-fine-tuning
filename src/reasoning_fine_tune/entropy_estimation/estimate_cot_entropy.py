@@ -70,7 +70,7 @@ def estimate_dataset(
         df[field_answer_embeddings] = ""
 
     for index, row in tqdm(df.iterrows(), total=df.shape[0]):
-        if validate_mmlu_answer(df.at[index, field_response]):
+        if df.at[index, field_ans_token_index] != -1:
             continue
 
         # print(f"loop {index} -> start: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
