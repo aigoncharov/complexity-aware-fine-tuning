@@ -124,8 +124,8 @@ def estimate_dataset(
                 if answer_marker[1] in output_str:
                     answer_marker_end = i
 
-        hidden_states_last_layer_input = outputs.hidden_state[-1, 0, :input_length]
-        hidden_states_last_layer_response = outputs.hidden_state[-1, 0, input_length:]
+        hidden_states_last_layer_input = outputs.hidden_states[-1, 0, :input_length]
+        hidden_states_last_layer_response = outputs.hidden_states[-1, 0, input_length:]
 
         extracted_answer: str = ""
         if answer_marker_end - answer_marker_start == 2:
