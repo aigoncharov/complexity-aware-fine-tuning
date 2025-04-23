@@ -9,7 +9,7 @@ from tqdm import tqdm
 from reasoning_fine_tune.entropy_estimation.logit_sequence_stats import collect_logit_sequence_stats
 from reasoning_fine_tune.prompts.mmlu_cot_answer import answer_marker, cot_answer_prompt, cot_sys_prompt
 from reasoning_fine_tune.utils.device import DEVICE
-from reasoning_fine_tune.utils.embeddings import get_embeddings
+from reasoning_fine_tune.utils.embeddings import pool_embeddings
 from reasoning_fine_tune.utils.validation import validate_mmlu_answer
 
 
@@ -89,6 +89,7 @@ def estimate_dataset(
             max_new_tokens=max_new_tokens,
             return_dict_in_generate=True,
             output_scores=True,
+            output_hidden_states=True,
             temperature=None,
             top_p=None,
             top_k=None,
@@ -123,21 +124,25 @@ def estimate_dataset(
                 if answer_marker[1] in output_str:
                     answer_marker_end = i
 
+        hidden_states_last_layer_input = outputs.hidden_state[-1, 0, :input_length]
+        hidden_states_last_layer_response = outputs.hidden_state[-1, 0, input_length:]
+
         extracted_answer: str = ""
         if answer_marker_end - answer_marker_start == 2:
             ans_token_index = answer_marker_start + 1
             extracted_answer = tokenizer.decode(logit_stats.greedy_tokens[ans_token_index])
             df.at[index, field_ans_token_index] = ans_token_index
 
-            answer_embeddings = get_embeddings(model, tokenizer, extracted_answer)
+            answer_embeddings = pool_embeddings(
+                hidden_states_last_layer_response[ans_token_index : ans_token_index + 1]
+            )
             df.at[index, field_answer_embeddings] = json.dumps(answer_embeddings)
 
-        prompt_embeddings = get_embeddings(model, tokenizer, formatted_prompt)
-        df.at[index, field_input_embeddings] = json.dumps(prompt_embeddings)
+        input_embeddings = pool_embeddings(hidden_states_last_layer_input)
+        df.at[index, field_input_embeddings] = json.dumps(input_embeddings)
 
         if answer_marker_start != -1:
-            think_text = tokenizer.decode(logit_stats.greedy_tokens[:answer_marker_start])
-            think_embeddings = get_embeddings(model, tokenizer, think_text)
+            think_embeddings = pool_embeddings(hidden_states_last_layer_response[:answer_marker_start])
             df.at[index, field_think_embeddings] = json.dumps(think_embeddings)
 
         if validate_mmlu_answer(extracted_answer):
