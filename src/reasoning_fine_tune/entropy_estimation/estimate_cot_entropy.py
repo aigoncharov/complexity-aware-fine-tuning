@@ -1,13 +1,15 @@
 import gc
+import json
 import os
 
 import pandas as pd
 import torch
 from tqdm import tqdm
 
-from reasoning_fine_tune.entropy_estimation.logit_entropy import compute_entropy_from_logits
+from reasoning_fine_tune.entropy_estimation.logit_sequence_stats import collect_logit_sequence_stats
 from reasoning_fine_tune.prompts.mmlu_cot_answer import answer_marker, cot_answer_prompt, cot_sys_prompt
 from reasoning_fine_tune.utils.device import DEVICE
+from reasoning_fine_tune.utils.embeddings import get_embeddings
 from reasoning_fine_tune.utils.validation import validate_mmlu_answer
 
 
@@ -39,22 +41,34 @@ def estimate_dataset(
     model_name = model.config_class().model_type
     print(model_name)
 
-    field_ans = f"entropy_ans_{model_name}"
-    field_ans_correct = f"entropy_ans_correct_{model_name}"
-    field_entropy_value = f"entropy_value_{model_name}"
-    field_entropy_formatted_ans_token_index = f"entropy_formatted_ans_token_index_{model_name}"
+    field_response = f"{model_name}_response"
+    field_ans_token_index = f"{model_name}_ans_token_index"
+    field_ans_correct = f"{model_name}_ans_correct"
+    field_entropies_value = f"{model_name}_entropies"
+    field_every_token_info = f"{model_name}_every_token_info"
+    field_input_embeddings = f"{model_name}_input_embeddings"
+    field_think_embeddings = f"{model_name}_think_embeddings"
+    field_answer_embeddings = f"{model_name}_answer_embeddings"
 
     if field_ans_correct not in df.columns:
         df[field_ans_correct] = False
-    if field_entropy_value not in df.columns:
-        df[field_entropy_value] = ""
-    if field_entropy_formatted_ans_token_index not in df.columns:
-        df[field_entropy_formatted_ans_token_index] = ""
-    if field_ans not in df.columns:
-        df[field_ans] = ""
+    if field_entropies_value not in df.columns:
+        df[field_entropies_value] = ""
+    if field_every_token_info not in df.columns:
+        df[field_every_token_info] = ""
+    if field_ans_token_index not in df.columns:
+        df[field_ans_token_index] = -1
+    if field_response not in df.columns:
+        df[field_response] = ""
+    if field_input_embeddings not in df.columns:
+        df[field_input_embeddings] = ""
+    if field_think_embeddings not in df.columns:
+        df[field_think_embeddings] = ""
+    if field_answer_embeddings not in df.columns:
+        df[field_answer_embeddings] = ""
 
     for index, row in tqdm(df.iterrows(), total=df.shape[0]):
-        if validate_mmlu_answer(df.at[index, field_ans]):
+        if validate_mmlu_answer(df.at[index, field_response]):
             continue
 
         # print(f"loop {index} -> start: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
@@ -85,58 +99,54 @@ def estimate_dataset(
         # print(f"loop {index} -> after generate: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
 
         input_length = inputs.input_ids.shape[1]
-        answer_raw = outputs.sequences[0, input_length:]
-        answer = tokenizer.decode(answer_raw, skip_special_tokens=True)
+        response_raw = outputs.sequences[0, input_length:]
+        response_decoded = tokenizer.decode(response_raw, skip_special_tokens=True)
 
-        df.at[index, field_ans] = answer
+        df.at[index, field_response] = response_decoded
+
+        logit_stats = collect_logit_sequence_stats(outputs.scores)
+
+        df.at[index, field_entropies_value] = ",".join(
+            [f"{single_token_entropy:.4f}" for single_token_entropy in logit_stats.entropies]
+        )
+        df.at[index, field_every_token_info] = json.dumps(logit_stats.every_token_stats)
 
         output_str: str = ""
-        extracted_answer: str = ""
         answer_marker_start = -1
         answer_marker_end = -1
-        output_entropy = []
-        for i in range(len(outputs.scores)):
-            # generated token position, batch_dim
-            token_logits = outputs.scores[i][0]
-            token_entropy = compute_entropy_from_logits(token_logits)
-            output_entropy.append(token_entropy)
-
-            token = token_logits.argmax(dim=-1)
-            token_str = tokenizer.decode(token, skip_special_tokens=True)
+        for i, token in enumerate(logit_stats.greedy_tokens):
+            token_str = tokenizer.decode(token)
             output_str += token_str
 
             if answer_marker_start == -1:
                 if answer_marker[0] in output_str:
                     answer_marker_start = i
-
-                    # Start accumulating extracted answer
-                    extracted_answer += token_str
             elif answer_marker_end == -1:
-                # Accumulate extracted answer until we see the "enf of answer" marker
-                extracted_answer += token_str
-
                 if answer_marker[1] in output_str:
                     answer_marker_end = i
 
-                    # Extract option id by removing answer markers
-                    extracted_answer = extracted_answer.split(answer_marker[0])[-1].split(answer_marker[1])[0]
+        extracted_answer: str = ""
+        if answer_marker_end - answer_marker_start == 2:
+            ans_token_index = answer_marker_start + 1
+            extracted_answer = tokenizer.decode(logit_stats.greedy_tokens[ans_token_index])
+            df.at[index, field_ans_token_index] = ans_token_index
 
-        df.at[index, field_entropy_value] = ",".join(
-            [f"{single_token_entropy:.4f}" for single_token_entropy in output_entropy]
-        )
+            answer_embeddings = get_embeddings(model, tokenizer, extracted_answer)
+            df.at[index, field_answer_embeddings] = json.dumps(answer_embeddings)
 
-        if answer_marker_start != -1 and answer_marker_end != -1:
-            df.at[index, field_entropy_formatted_ans_token_index] = f"{answer_marker_start},{answer_marker_end}"
+        prompt_embeddings = get_embeddings(model, tokenizer, formatted_prompt)
+        df.at[index, field_input_embeddings] = json.dumps(prompt_embeddings)
+
+        if answer_marker_start != -1:
+            think_text = tokenizer.decode(logit_stats.greedy_tokens[:answer_marker_start])
+            think_embeddings = get_embeddings(model, tokenizer, think_text)
+            df.at[index, field_think_embeddings] = json.dumps(think_embeddings)
 
         if validate_mmlu_answer(extracted_answer):
             # print(f"loop {index} -> after entropy: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
             df.at[index, field_ans_correct] = check_answer_correct(row, extracted_answer)
         else:
             invalid_answers += 1
-
-        # print(
-        #     f"CoT: {answer}\nExtracted answer: {extracted_answer}\nAnswer token indecies: {df.at[index, field_entropy_formatted_ans_token_index]}\nEntropy: {df.at[index, field_entropy_value]}\nis_correct: {df.at[index, field_ans_correct]}\ndims:{input_length}, {outputs.sequences.shape}\n\n"
-        # )
 
         if index % dump_every == 0:
             df.to_csv(out_filename, sep="\t", index=False)
