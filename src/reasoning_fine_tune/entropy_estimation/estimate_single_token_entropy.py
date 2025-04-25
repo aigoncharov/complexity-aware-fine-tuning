@@ -54,6 +54,10 @@ def estimate_dataset(
         if validate_mmlu_answer(df.at[index, field_ans]):
             continue
 
+        gc.collect()
+        if DEVICE == torch.device("cuda"):
+            torch.cuda.empty_cache()
+
         # print(f"loop {index} -> start: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
 
         sys_prompt = get_sys_prompt(get_subject_from_row(row))
@@ -104,10 +108,6 @@ def estimate_dataset(
 
         if index % dump_every == 0:
             df.to_csv(out_filename, sep="\t", index=False)
-
-        gc.collect()
-        if DEVICE == torch.device("cuda"):
-            torch.cuda.empty_cache()
 
     df.to_csv(out_filename, sep="\t", index=False)
     print(f"Processed dataset {out_filename}. Total entries: {df.shape[0]}. Invalid answers: {invalid_answers}")
