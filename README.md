@@ -6,7 +6,7 @@
 
 ## Data
 
-- Download CoT entropy data for MMLU ([Qwen 3B](https://disk.yandex.ru/d/A99rxeAx63CMsQ), Phi4 mini) to `data/out/cot_entropy`
+- Download CoT entropy data for MMLU ([Qwen 3B](https://disk.yandex.ru/d/A99rxeAx63CMsQ), [Phi4-mini](https://disk.yandex.ru/d/Z9NMNqJrDjchOg)) to `data/out/cot_entropy`
 
 ## Running experiments
 
