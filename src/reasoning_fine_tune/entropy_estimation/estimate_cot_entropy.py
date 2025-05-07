@@ -136,14 +136,17 @@ def estimate_dataset(
             df.at[index, field_ans_token_index] = ans_token_index
 
             answer_embeddings = get_embeddings(model, tokenizer, extracted_answer)
-            df.at[index, field_answer_embeddings] = json.dumps(answer_embeddings)
+            if answer_embeddings is not None:
+                df.at[index, field_answer_embeddings] = json.dumps(answer_embeddings)
 
             think_text = tokenizer.decode(logit_stats.greedy_tokens[:answer_marker_start])
             think_embeddings = get_embeddings(model, tokenizer, think_text)
-            df.at[index, field_think_embeddings] = json.dumps(think_embeddings)
+            if think_embeddings is not None:
+                df.at[index, field_think_embeddings] = json.dumps(think_embeddings)
 
         input_embeddings = get_embeddings(model, tokenizer, formatted_prompt)
-        df.at[index, field_input_embeddings] = json.dumps(input_embeddings)
+        if input_embeddings is not None:
+            df.at[index, field_input_embeddings] = json.dumps(input_embeddings)
 
         if validate_mmlu_answer(extracted_answer):
             # print(f"loop {index} -> after entropy: {model.get_memory_footprint(return_buffers=True) / 10**9} GB")
