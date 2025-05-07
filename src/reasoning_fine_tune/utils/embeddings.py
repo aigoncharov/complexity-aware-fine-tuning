@@ -14,5 +14,6 @@ def get_embeddings(model, tokenizer, text):
             "mean": batch_hidden_states.mean(dim=0).cpu().numpy().tolist(),
         }
         return pool_embeddings
+    # TODO: Investigate why it fails for Qwen 3B only for specific rows
     except:
         return None
