@@ -4,7 +4,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from reasoning_fine_tune.prompts.mmlu_cot_answer import answer_marker, cot_answer_prompt, cot_sys_prompt
-from reasoning_fine_tune.utils import openrouter
+from reasoning_fine_tune.utils.openrouter import openrouter
 from reasoning_fine_tune.utils.validation import validate_mmlu_answer
 
 
@@ -67,13 +67,17 @@ def distill_on_dataset(
 
         extracted_answer = ""
         if answer_marker_end != -1 and answer_marker_start != -1:
-            extracted_answer = response[answer_marker_start:answer_marker_end]
+            extracted_answer = response[answer_marker_start + len(answer_marker[0]) : answer_marker_end]
 
         if validate_mmlu_answer(extracted_answer):
             df.at[index, field_ans] = extracted_answer
             df.at[index, field_ans_correct] = check_answer_correct(row, extracted_answer)
         else:
             invalid_answers += 1
+
+        # print(
+        #     f"response: {response}\nextracted_answer: {extracted_answer}\ncorrect:{df.at[index, field_ans_correct]}\n\n"
+        # )
 
         if index % dump_every == 0:
             df.to_csv(out_filename, sep="\t", index=False)
