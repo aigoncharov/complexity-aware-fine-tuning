@@ -10,6 +10,7 @@ dependencies = [
     "matplotlib>=3.10.1",
     "mistralai>=1.6.0",
     "numpy>=2.2.4",
+    "openai>=1.78.1",
     "pandas>=2.2.3",
     "protobuf>=6.30.2",
     "pyarrow>=19.0.1",
