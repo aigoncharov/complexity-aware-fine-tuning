@@ -13,15 +13,18 @@ chunk_size = 50
 
 
 def call_remote_llm(args):
-    sys_prompt, user_prompt, index, model, max_tokens = args
+    try:
+        sys_prompt, user_prompt, index, model, max_tokens = args
 
-    messages = [
-        {"role": "system", "content": sys_prompt},
-        {"role": "user", "content": user_prompt},
-    ]
+        messages = [
+            {"role": "system", "content": sys_prompt},
+            {"role": "user", "content": user_prompt},
+        ]
 
-    completion = openrouter.chat.completions.create(model=model, messages=messages, max_tokens=max_tokens)
-    return index, completion.choices[0].message.content
+        completion = openrouter.chat.completions.create(model=model, messages=messages, max_tokens=max_tokens)
+        return index, completion.choices[0].message.content
+    except:
+        return None
 
 
 def distill_on_dataset(
@@ -74,7 +77,13 @@ def distill_on_dataset(
 
             results = list(pool.map(call_remote_llm, args_list))
 
-            for index, response in results:
+            for result in results:
+                if result is None:
+                    invalid_answers += 1
+                    continue
+
+                index, response = result
+
                 df.at[index, field_response] = response
 
                 answer_marker_start = response.find(answer_marker[0])
