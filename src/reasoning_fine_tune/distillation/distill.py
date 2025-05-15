@@ -39,18 +39,19 @@ def distill_on_dataset(
 ):
     invalid_answers = 0
 
-    if os.path.exists(out_filename):
-        in_filename = out_filename
-
-    df = pd.read_csv(
-        in_filename,
-        sep="\t",
-        header=0,
-    )
-
     field_response = "distill_response"
     field_ans = "distill_answer"
     field_ans_correct = "distill_ans_correct"
+
+    if os.path.exists(out_filename):
+        df = pd.read_csv(out_filename, sep="\t", dtype={field_response: "str", field_ans: "str"}, keep_default_na=False)
+    else:
+        df = pd.read_csv(
+            in_filename,
+            sep="\t",
+        )
+
+    # print(df.dtypes)
 
     if field_ans_correct not in df.columns:
         df[field_ans_correct] = False
