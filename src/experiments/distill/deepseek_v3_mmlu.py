@@ -5,7 +5,7 @@ from reasoning_fine_tune.distillation.distill import distill_on_dataset
 from reasoning_fine_tune.utils.correctness import check_answer_correct_mmlu
 
 distill_on_dataset(
-    in_filename=Path(__file__).parent.joinpath("../../../data/source/mmlu_pro_stem.tsv").resolve(),
+    in_filename=Path(__file__).parent.joinpath("../../../data/source/mmlu_pro_stem_shuffled.tsv").resolve(),
     out_filename=Path(__file__).parent.joinpath("../../../data/out/distillation/mmlu_deepseek_v3.tsv").resolve(),
     get_subject_from_row=lambda row: row["base_cluster"],
     get_question_from_row=lambda row: row["question"],
