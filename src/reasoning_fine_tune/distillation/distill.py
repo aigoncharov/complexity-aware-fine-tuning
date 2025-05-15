@@ -9,7 +9,7 @@ from reasoning_fine_tune.utils.chunker import chunker
 from reasoning_fine_tune.utils.openrouter import openrouter
 from reasoning_fine_tune.utils.validation import validate_mmlu_answer
 
-chunk_size = 50
+chunk_size = 30
 
 
 def call_remote_llm(args):
