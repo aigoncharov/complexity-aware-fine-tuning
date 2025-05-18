@@ -17,6 +17,15 @@ def join_with_masj_reasoning_score(df, rating_threshold=9):
 
     masj_reasoning_score_df.dropna(subset="masj_num_reasoning_steps", inplace=True)
 
-    return pd.merge(
+    merged_df = pd.merge(
         df, masj_reasoning_score_df[["question_id", "masj_num_reasoning_steps"]], how="inner", on="question_id"
     )
+
+    merged_df["masj_num_reasoning_steps_norm"] = 0.0
+    merged_df.loc[merged_df["masj_num_reasoning_steps"] == "low", "masj_num_reasoning_steps_norm"] = 0.25
+    merged_df.loc[merged_df["masj_num_reasoning_steps"] == "medium", "masj_num_reasoning_steps_norm"] = 0.5
+    merged_df.loc[merged_df["masj_num_reasoning_steps"] == "high", "masj_num_reasoning_steps_norm"] = 0.75
+    # Ensure the target variable is in the correct format
+    merged_df["masj_num_reasoning_steps_norm"] = merged_df["masj_num_reasoning_steps_norm"].astype(float)
+
+    return merged_df
