@@ -8,7 +8,8 @@ General purpose Large Language Models (LLMs) are frequently fine-tuned to improv
 
 ## Data
 
-- Download CoT entropy data for MMLU ([Qwen 3B](https://disk.yandex.ru/d/A99rxeAx63CMsQ) [Qwen 3B with fallback if unknown](https://disk.yandex.ru/d/LowMkpNfbTcrXQ), [Phi4-mini](https://disk.yandex.ru/d/Z9NMNqJrDjchOg), [Phi4-mini with fallback if unknown](https://disk.yandex.ru/d/GAsFliSAiaAPAg)) to `data/out/cot_entropy`
+- Download [CoT entropy data](https://huggingface.co/datasets/LabARSS/MMLU-Pro-chain-of-thought-entropy) for MMLU to `data/out/cot_entropy`
+- Download [reasoning data](https://huggingface.co/datasets/LabARSS/MMLU-Pro-reasoning-entropy-Qwen3-8B) for MMLU to `data/out/reasoning_entropy`
 
 ## Running experiments
 
