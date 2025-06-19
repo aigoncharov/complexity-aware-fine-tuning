@@ -11,6 +11,11 @@ General purpose Large Language Models (LLMs) are frequently fine-tuned to improv
 - Download [CoT entropy data](https://huggingface.co/datasets/LabARSS/MMLU-Pro-chain-of-thought-entropy) for MMLU to `data/out/cot_entropy`
 - Download [reasoning data](https://huggingface.co/datasets/LabARSS/MMLU-Pro-reasoning-entropy-Qwen3-8B) for MMLU to `data/out/reasoning_entropy`
 
+Other datasets are included in the repo and also published on Huggingface:
+- [MMLU Pro education Level](https://huggingface.co/datasets/LabARSS/MMLU-Pro-education-level)
+- [MMLU Pro reasoning score](https://huggingface.co/datasets/LabARSS/MMLU-Pro-reasoning-score)
+- [MMLU Pro single token entropy](https://huggingface.co/datasets/LabARSS/MMLU-Pro-single-token-entropy)
+
 ## Running experiments
 
 `uv run src/experiments/REPLACE_ME.py`
