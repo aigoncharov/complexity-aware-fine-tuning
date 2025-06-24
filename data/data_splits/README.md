@@ -1,4 +1,4 @@
-# Complexity-Aware Fine-Tuning
+# Complexity-Aware Splits for Fine-Tuning
 
 This repository provides precomputed train/validation/test splits of MMLU data stratified by various difficulty metrics: entropy, entropy with fallback, cross-entropy, MASJ rating, and chain-of-thought reasoning steps. All splits are organized under `data/data_splits/`.
 
